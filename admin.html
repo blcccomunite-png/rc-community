@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RC COMMUNITY - ADMIN PANEL</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; user-select: none; }
         body { background: #05000a; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -104,17 +106,33 @@
 </div>
 
 <script>
-//  
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDgveWAtkaJxOv0Rg24pbQT7vD0zK-w8g",
+  authDomain: "rc-admin-penel.firebaseapp.com",
+  databaseURL: "https://rc-admin-penel-default-rtdb.firebaseio.com",
+  projectId: "rc-admin-penel",
+  storageBucket: "rc-admin-penel.firebasestorage.app",
+  messagingSenderId: "60752176456",
+  appId: "1:60752176456:web:e1c43af8a536964a37651c",
+  measurementId: "G-3WCXL6PXNY"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const database = firebase.database();
+
 const MASTER_ADMIN_PASSWORD = "ADMIN";
 
-//   
 const defaultConfig = {
-    name: "   ",
+    name: "ЁЭРСтАвЁЭРВ ЁЭРУЁЭРДЁЭРАЁЭРМ ЁЭРОЁЭРЕЁЭРЕЁЭРИЁЭРВЁЭРИЁЭРАЁЭРЛ ЁЭРЖЁЭРСЁЭРОЁЭРФЁЭРП",
     pass: "RC COMMUNITY",
     link: "https://deshclub2.com/#/register?invitationCode=43526139719"
 };
 
-//   
+// Admin Login Check
 function checkAdminLogin() {
     const enteredPass = document.getElementById('adminPassInput').value.trim();
     if (enteredPass === MASTER_ADMIN_PASSWORD) {
@@ -126,17 +144,22 @@ function checkAdminLogin() {
     }
 }
 
-//      
+// ফায়ারবেস থেকে কারেন্ট ডাটা লোড করে ইনপুটে বসানো
 function loadCurrentConfig() {
-    const saved = localStorage.getItem('global_hack_config');
-    const config = saved ? JSON.parse(saved) : defaultConfig;
-    
-    document.getElementById('configName').value = config.name;
-    document.getElementById('configPass').value = config.pass;
-    document.getElementById('configLink').value = config.link;
+    database.ref("global_hack_config").once("value").then((snapshot) => {
+        const config = snapshot.exists() ? snapshot.val() : defaultConfig;
+        document.getElementById('configName').value = config.name;
+        document.getElementById('configPass').value = config.pass;
+        document.getElementById('configLink').value = config.link;
+    }).catch((error) => {
+        // ডাটাবেজে কোনো ডাটা না থাকলে ডিফল্ট ডাটা শো করবে
+        document.getElementById('configName').value = defaultConfig.name;
+        document.getElementById('configPass').value = defaultConfig.pass;
+        document.getElementById('configLink').value = defaultConfig.link;
+    });
 }
 
-//     
+// ফায়ারবেস ডাটাবেজে নতুন ডাটা আপডেট ও সেভ করা
 function saveNewConfig() {
     const updatedConfig = {
         name: document.getElementById('configName').value.trim(),
@@ -145,19 +168,22 @@ function saveNewConfig() {
     };
     
     if(!updatedConfig.name || !updatedConfig.pass || !updatedConfig.link) {
-        alert("    !");
+        alert("Sob ghor puron korun mama!");
         return;
     }
     
-    //   
-    localStorage.setItem('global_hack_config', JSON.stringify(updatedConfig));
-    
-    //  
-    const msg = document.getElementById('statusMsg');
-    msg.style.display = "block";
-    setTimeout(() => {
-        msg.style.display = "none";
-    }, 2500);
+    // ফায়ারবেসে ডাটা রাইট করা
+    database.ref("global_hack_config").set(updatedConfig)
+    .then(() => {
+        const msg = document.getElementById('statusMsg');
+        msg.style.display = "block";
+        setTimeout(() => {
+            msg.style.display = "none";
+        }, 2500);
+    })
+    .catch((error) => {
+        alert("Data save korte somossa hoyeche: " + error.message);
+    });
 }
 </script>
 
