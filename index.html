@@ -84,6 +84,9 @@
         .widget-tg:hover { transform: scale(1.05); }
 
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -115,42 +118,44 @@
 </div>
 
 <script>
-// --- CONFIGURATION MANAGEMENT ---
-function loadConfig() {
-    // এখানে ডিফল্ট অবজেক্টে আপনার দেওয়া নতুন নাম, পাসওয়ার্ড এবং লিংক সরাসরি হার্ডকোড করে দেওয়া হয়েছে
-    const defaultConfig = {
-        name: "𝐑•𝐂 𝐓𝐄𝐀𝐌 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐆𝐑𝐎𝐔𝐏",
-        pass: "RC COMMUNITY",
-        link: "https://deshclub2.com/#/register?invitationCode=43526139719"
-    };
+// --- FIREBASE INITIALIZATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDgveWAtkaJxOv0Rg24pbQT7...", 
+  authDomain: "rc-admin-penel.firebaseapp.com",
+  databaseURL: "https://rc-admin-penel-default-rtdb.firebaseio.com",
+  projectId: "rc-admin-penel",
+  storageBucket: "rc-admin-penel.firebasestorage.app",
+  messagingSenderId: "60752176456",
+  appId: "1:60752176456:web:e1c43af8a53...",
+  measurementId: "G-3WCXL6PXNY"
+};
 
-    const saved = localStorage.getItem('global_hack_config');
-    if (saved) {
-        // যদি ব্রাউজারে আগে থেকে কোনো পুরনো ডেটা সেভ থাকে, তবে তা রিমুভ করে নতুন কনফিগারেশন সেট করবে
-        const parsed = JSON.parse(saved);
-        if (parsed.name !== defaultConfig.name) {
-            localStorage.setItem('global_hack_config', JSON.stringify(defaultConfig));
-            return defaultConfig;
-        }
-        return parsed;
-    } else {
-        localStorage.setItem('global_hack_config', JSON.stringify(defaultConfig));
-        return defaultConfig;
-    }
-}
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-let config = loadConfig();
+let config = {
+    name: "𝐑•𝐂 𝐓𝐄𝐀𝐌 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐆𝐑𝐎𝐔𝐏",
+    pass: "RC COMMUNITY",
+    link: "https://deshclub2.com/#/register?invitationCode=43526139719"
+};
 
 function applyConfig() {
     document.getElementById('display-name').innerText = config.name;
     document.getElementById('widget-title').innerText = config.name;
     document.getElementById('page-title').innerText = config.name;
+    
+    //   -    (    )
+    const frame = document.getElementById('game-frame');
+    if(frame.src && frame.src !== config.link && document.getElementById('main-interface').style.display === "block"){
+        frame.src = config.link;
+    }
 }
-applyConfig();
 
-window.addEventListener('storage', (e) => {
-    if (e.key === 'global_hack_config') {
-        config = JSON.parse(e.newValue);
+//   -    
+database.ref("app_config").on("value", (snapshot) => {
+    const data = snapshot.val();
+    if(data) {
+        config = data;
         applyConfig();
     }
 });
